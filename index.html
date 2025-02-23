@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redraw Frames</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+      margin-bottom: 10px;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    #drawnImage {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Video Redraw Tool</h1>
+  <div>
+    <input type="file" id="videoUpload" accept="video/*">
+  </div>
+  <video id="video" controls></video>
+  <br>
+  <div class="controls">
+    <button id="nextFrame">Next Frame</button>
+    <button id="saveFrame">Save Drawn Frame</button>
+  </div>
+  <canvas id="canvas" width="640" height="360"></canvas>
+  <br>
+  <a id="downloadLink" download="redrawn_frame.png">
+    <button id="downloadButton" style="display:none;">Download Redrawn Frame</button>
+  </a>
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@latest"></script>
+  <script src="redraw.js"></script>
+</body>
+</html>
