@@ -5,18 +5,16 @@ let ctx = canvas.getContext("2d");
 let currentFrame = 0;
 let drawnFrames = JSON.parse(localStorage.getItem("drawnFrames") || "[]");
 
-// Declare the async function to load FFmpeg
+let ffmpeg; // Declare ffmpeg outside of functions
+
+// Asynchronously load the ffmpeg library
 async function loadFFmpeg() {
-  try {
-    ffmpeg = await FFmpeg.createFFmpeg({ log: true });
-    await ffmpeg.load(); // Wait for ffmpeg to load
-    console.log("FFmpeg is ready");
-  } catch (error) {
-    console.error("Error loading FFmpeg: ", error);
-  }
+  ffmpeg = await FFmpeg.createFFmpeg({ log: true }); // Initialize FFmpeg
+  await ffmpeg.load(); // Wait for ffmpeg to load
+  console.log("FFmpeg is ready");
 }
 
-// Call the loading function after its definition
+// Call loadFFmpeg to initialize it
 loadFFmpeg();
 
 // Video upload handler
@@ -37,6 +35,7 @@ async function loadFrames(file) {
     ffmpeg.FS("writeFile", "video.mp4", await fetchFile(file));
     console.log("Video loaded into FFmpeg");
 
+    // Extract frames at 1 FPS
     await ffmpeg.run("-i", "video.mp4", "-vf", "fps=1", "frame%04d.png");
     console.log("Frames extracted");
 
