@@ -5,6 +5,20 @@ let ctx = canvas.getContext("2d");
 let currentFrame = 0;
 let drawnFrames = JSON.parse(localStorage.getItem("drawnFrames") || "[]");
 
+// Declare the async function to load FFmpeg
+async function loadFFmpeg() {
+  try {
+    ffmpeg = await FFmpeg.createFFmpeg({ log: true });
+    await ffmpeg.load(); // Wait for ffmpeg to load
+    console.log("FFmpeg is ready");
+  } catch (error) {
+    console.error("Error loading FFmpeg: ", error);
+  }
+}
+
+// Call the loading function after its definition
+loadFFmpeg();
+
 // Video upload handler
 videoUpload.addEventListener("change", function (e) {
   let file = e.target.files[0];
@@ -17,14 +31,20 @@ videoUpload.addEventListener("change", function (e) {
   }
 });
 
-let ffmpeg = FFmpeg.createFFmpeg({ log: true });
-
-// Load frames from the video
 async function loadFrames(file) {
-  await ffmpeg.load();
-  ffmpeg.FS("writeFile", "video.mp4", await fetchFile(file));
-  await ffmpeg.run("-i", "video.mp4", "-vf", "fps=1", "frame%04d.png");
-  totalFrames = await ffmpeg.FS("readdir", "/").filter(f => f.endsWith(".png")).length;
+  try {
+    await ffmpeg.load();
+    ffmpeg.FS("writeFile", "video.mp4", await fetchFile(file));
+    console.log("Video loaded into FFmpeg");
+
+    await ffmpeg.run("-i", "video.mp4", "-vf", "fps=1", "frame%04d.png");
+    console.log("Frames extracted");
+
+    let totalFrames = await ffmpeg.FS("readdir", "/").filter(f => f.endsWith(".png")).length;
+    console.log(`Total frames extracted: ${totalFrames}`);
+  } catch (error) {
+    console.error("Error during frame extraction:", error);
+  }
 }
 
 // Show next frame
@@ -51,7 +71,6 @@ document.getElementById("saveFrame").addEventListener("click", function () {
   let frameData = canvas.toDataURL();
   let frameFile = `/frame${currentFrame.toString().padStart(4, "0")}.png`;
 
-  // Save to localStorage (or back-end if needed)
   localStorage.setItem("drawnFrames", JSON.stringify([...drawnFrames, frameFile]));
   let link = document.getElementById("downloadLink");
   let imgData = dataURItoBlob(frameData);
@@ -61,7 +80,6 @@ document.getElementById("saveFrame").addEventListener("click", function () {
   document.getElementById("downloadButton").style.display = "inline";
 });
 
-// Helper function to convert data URL to Blob
 function dataURItoBlob(dataURI) {
   let byteString = atob(dataURI.split(',')[1]);
   let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
